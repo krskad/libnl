@@ -546,8 +546,28 @@ struct rtnl_u32
 
 struct rtnl_flower
 {
-    struct nl_data * cf_src_mac;
-	int cf_mask;
+	uint32_t cfl_classid;
+	char cfl_indev[IFNAMSIZ];
+	struct rtnl_act * cfl_act;
+	struct nl_data * cfl_key_eth_dst;
+	struct nl_data * cfl_key_eth_dst_mask;
+	struct nl_data * cfl_key_eth_src;
+	struct nl_data * cfl_key_eth_src_mask;
+	uint16_t cfl_key_eth_type;
+	uint8_t cfl_key_ip_proto;
+	uint32_t cfl_key_ipv4_src;
+	uint32_t cfl_key_ipv4_src_mask;
+	uint32_t cfl_key_ipv4_dst;
+	uint32_t cfl_key_ipv4_dst_mask;
+	// in6_addr cfl_key_ipv6_src;
+	// in6_addr cfl_key_ipv6_src_mask;
+	// in6_addr cfl_key_ipv6_dst;
+	// in6_addr cfl_key_ipv6_dst_mask;
+	uint16_t cfl_key_tcp_src;
+	uint16_t cfl_key_tcp_dst;
+	uint16_t cfl_key_udp_src;
+	uint16_t cfl_key_udp_dst;
+	int cfl_mask;
 };
 
 struct rtnl_cgroup

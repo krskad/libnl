@@ -44,8 +44,7 @@ static int cls_build(struct rtnl_cls *cls, int type, int flags,
 		return -NLE_MISSING_ATTR;
 	}
 
-	err = rtnl_tc_msg_build(TC_CAST(cls), type, flags, result);
-	if (err < 0)
+	err = rtnl_tc_msg_build(TC_CAST(cls), type, flags, result); if (err < 0)
 		return err;
 
 	tchdr = nlmsg_data(nlmsg_hdr(*result));

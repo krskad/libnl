@@ -4,9 +4,12 @@
 
 #include <netlink/route/cls/flower.h>
 
-#define FLOWER_ATTR_SRC_MAC 0x001
+#define FLOWER_ATTR_DST_MAC 0x001
+#define FLOWER_ATTR_SRC_MAC 0x002
+#define FLOWER_ATTR_ETH_TYPE 0x004
+#define FLOWER_ATTR_IP_PROTO 0x008
 
-int rtnl_flower_set_src_mac(struct rtnl_cls *cls, char* addr)
+int rtnl_flower_set_dst_mac(struct rtnl_cls *cls, char* addr, char* addr_mask)
 {
     struct rtnl_flower *u;
     // int err;
@@ -14,14 +17,55 @@ int rtnl_flower_set_src_mac(struct rtnl_cls *cls, char* addr)
 	if (!(u = rtnl_tc_data(TC_CAST(cls))))
 		return -NLE_NOMEM;
 
-    // alloc nl_data and fill mac address
-	u->cf_src_mac = nl_data_alloc(addr, 6);
+	u->cfl_key_eth_dst = nl_data_alloc(addr, 6);
 
-    // set mask
-    u->cf_mask = FLOWER_ATTR_SRC_MAC;
+	u->cfl_key_eth_dst_mask = nl_data_alloc(addr_mask, 6);
+
+    u->cfl_mask |= FLOWER_ATTR_DST_MAC;
     return 0;
 }
 
+int rtnl_flower_set_src_mac(struct rtnl_cls *cls, char* addr, char* addr_mask)
+{
+    struct rtnl_flower *u;
+    // int err;
+
+	if (!(u = rtnl_tc_data(TC_CAST(cls))))
+		return -NLE_NOMEM;
+
+	u->cfl_key_eth_src = nl_data_alloc(addr, 6);
+
+	u->cfl_key_eth_src_mask = nl_data_alloc(addr_mask, 6);
+
+    u->cfl_mask |= FLOWER_ATTR_SRC_MAC;
+    return 0;
+}
+
+int rtnl_flower_set_eth_type(struct rtnl_cls *cls, uint16_t eth_type)
+{
+    struct rtnl_flower *u;
+
+	if (!(u = rtnl_tc_data(TC_CAST(cls))))
+		return -NLE_NOMEM;
+
+	u->cfl_key_eth_type = eth_type;
+
+    u->cfl_mask |= FLOWER_ATTR_ETH_TYPE;
+	return 0;
+}
+
+int rtnl_flower_set_ip_proto(struct rtnl_cls *cls, uint8_t ip_proto)
+{
+    struct rtnl_flower *u;
+
+	if (!(u = rtnl_tc_data(TC_CAST(cls))))
+		return -NLE_NOMEM;
+
+	u->cfl_key_ip_proto = ip_proto;
+
+    u->cfl_mask |= FLOWER_ATTR_IP_PROTO;
+	return 0;
+}
 
 static int flower_msg_parser(struct rtnl_tc *tc, void *data)
 {
@@ -50,8 +94,22 @@ static int flower_msg_fill(struct rtnl_tc *tc, void *data, struct nl_msg *msg)
 
     if (!u) return 0;
 
-    if (u->cf_mask & FLOWER_ATTR_SRC_MAC){
-        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC, u->cf_src_mac);
+    if (u->cfl_mask & FLOWER_ATTR_DST_MAC){
+        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_DST, u->cfl_key_eth_dst);
+        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_DST_MASK, u->cfl_key_eth_dst_mask);
+    }
+
+    if (u->cfl_mask & FLOWER_ATTR_SRC_MAC){
+        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC, u->cfl_key_eth_src);
+        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC_MASK, u->cfl_key_eth_src_mask);
+    }
+
+    if (u->cfl_mask & FLOWER_ATTR_ETH_TYPE){
+        NLA_PUT_U32(msg, TCA_FLOWER_KEY_ETH_TYPE, u->cfl_key_eth_type);
+    }
+
+    if (u->cfl_mask & FLOWER_ATTR_IP_PROTO){
+        NLA_PUT_U32(msg, TCA_FLOWER_KEY_ETH_TYPE, u->cfl_key_eth_type);
     }
     // TODO: add other parameters
     return 0;
