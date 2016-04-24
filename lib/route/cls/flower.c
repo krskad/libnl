@@ -46,8 +46,18 @@ static int flower_clone(void *_dst, void *_src)
 static int flower_msg_fill(struct rtnl_tc *tc, void *data, struct nl_msg *msg)
 {
     printf("DBG: 'flower_msg_fill' called\n");
+	struct rtnl_flower *u = data;
+
+    if (!u) return 0;
+
+    if (u->cf_mask & FLOWER_ATTR_SRC_MAC){
+        NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC, u->cf_src_mac);
+    }
+    // TODO: add other parameters
     return 0;
-    // TODO
+
+nla_put_failure:
+    return -NLE_NOMEM;
 }
 
 static void flower_dump_line(struct rtnl_tc *tc, void *data,
