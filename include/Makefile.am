@@ -44,6 +44,7 @@ nobase_libnlinclude_HEADERS = \
 	netlink/route/cls/fw.h \
 	netlink/route/cls/police.h \
 	netlink/route/cls/u32.h \
+	netlink/route/cls/flower.h \
 	netlink/route/link/api.h \
 	netlink/route/link/bonding.h \
 	netlink/route/link/bridge.h \

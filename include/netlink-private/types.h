@@ -544,6 +544,12 @@ struct rtnl_u32
 	int			cu_mask;
 };
 
+struct rtnl_flower
+{
+    struct nl_data * cf_src_mac;
+	int cf_mask;
+};
+
 struct rtnl_cgroup
 {
 	struct rtnl_ematch_tree *cg_ematch;

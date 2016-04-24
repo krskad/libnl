@@ -346,6 +346,7 @@ static void u32_dump_stats(struct rtnl_tc *tc, void *data,
 
 static int u32_msg_fill(struct rtnl_tc *tc, void *data, struct nl_msg *msg)
 {
+    printf("DBG: 'u32_msg_fill' called\n");
 	struct rtnl_u32 *u = data;
 
 	if (!u)

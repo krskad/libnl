@@ -44,9 +44,11 @@ static int cls_build(struct rtnl_cls *cls, int type, int flags,
 		return -NLE_MISSING_ATTR;
 	}
 
+    printf("cls_build 1\n");
 	err = rtnl_tc_msg_build(TC_CAST(cls), type, flags, result);
 	if (err < 0)
 		return err;
+    printf("cls_build 2\n");
 
 	tchdr = nlmsg_data(nlmsg_hdr(*result));
 	prio = rtnl_cls_get_prio(cls);
@@ -186,8 +188,10 @@ int rtnl_cls_add(struct nl_sock *sk, struct rtnl_cls *cls, int flags)
 	struct nl_msg *msg;
 	int err;
 	
+    printf("rtnl_cls_add 1\n");
 	if ((err = rtnl_cls_build_add_request(cls, flags, &msg)) < 0)
 		return err;
+    printf("rtnl_cls_add 2\n");
 
 	return nl_send_sync(sk, msg);
 }
