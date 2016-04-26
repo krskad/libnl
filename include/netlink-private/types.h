@@ -549,10 +549,10 @@ struct rtnl_flower
 	uint32_t cfl_classid;
 	char cfl_indev[IFNAMSIZ];
 	struct rtnl_act * cfl_act;
-	struct nl_data * cfl_key_eth_dst;
-	struct nl_data * cfl_key_eth_dst_mask;
 	struct nl_data * cfl_key_eth_src;
 	struct nl_data * cfl_key_eth_src_mask;
+	struct nl_data * cfl_key_eth_dst;
+	struct nl_data * cfl_key_eth_dst_mask;
 	uint16_t cfl_key_eth_type;
 	uint8_t cfl_key_ip_proto;
 	uint32_t cfl_key_ipv4_src;

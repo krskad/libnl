@@ -832,10 +832,21 @@ global:
 	rtnl_u32_set_hashmask;
 	rtnl_u32_set_hashtable;
 	rtnl_u32_set_link;
-	rtnl_flower_set_dst_mac;
+	rtnl_flower_get_classid;
+	rtnl_flower_set_classid;
+	rtnl_flower_set_indev;
+	rtnl_flower_add_action;
+	rtnl_flower_del_action;
 	rtnl_flower_set_src_mac;
+	rtnl_flower_set_dst_mac;
 	rtnl_flower_set_eth_type;
 	rtnl_flower_set_ip_proto;
+	rtnl_flower_set_ipv4_src;
+	rtnl_flower_set_ipv4_dst;
+	rtnl_flower_set_tcp_src;
+	rtnl_flower_set_tcp_dst;
+	rtnl_flower_set_udp_src;
+	rtnl_flower_set_udp_dst;
 
 	# The following symbols were added during the development of 3.2.26.
 	# Keep them in libnl_3 to avoid breaking users.
