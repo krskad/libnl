@@ -32,9 +32,11 @@ extern int rtnl_flower_set_ipv4_src(struct rtnl_cls *, uint32_t, uint32_t);
 
 extern int rtnl_flower_set_ipv4_dst(struct rtnl_cls *, uint32_t, uint32_t);
 
-// ipv6_src
+extern int rtnl_flower_set_ipv6_src(struct rtnl_cls *,
+		const struct in6_addr *, const struct in6_addr *);
 
-// ipv6_dst
+extern int rtnl_flower_set_ipv6_dst(struct rtnl_cls *,
+		const struct in6_addr *, const struct in6_addr *);
 
 extern int rtnl_flower_set_tcp_src(struct rtnl_cls *, uint16_t);
 

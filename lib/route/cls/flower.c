@@ -188,6 +188,37 @@ int rtnl_flower_set_ipv4_dst(struct rtnl_cls *cls, uint32_t dst, uint32_t dst_ma
 	return 0;
 }
 
+int rtnl_flower_set_ipv6_src(struct rtnl_cls *cls,
+		const struct in6_addr *addr, const struct in6_addr *addr_mask)
+{
+	struct rtnl_flower *f;
+
+	if (!(f = rtnl_tc_data(TC_CAST(cls))))
+		return -NLE_NOMEM;
+
+	f->cfl_key_ipv6_src = nl_data_alloc(addr, sizeof(*addr));
+
+	f->cfl_key_ipv6_src_mask = nl_data_alloc(addr_mask, sizeof(*addr_mask));
+
+	f->cfl_mask |= FLOWER_ATTR_IPV6_SRC;
+	return 0;
+}
+
+int rtnl_flower_set_ipv6_dst(struct rtnl_cls *cls,
+		const struct in6_addr *addr, const struct in6_addr *addr_mask)
+{
+	struct rtnl_flower *f;
+
+	if (!(f = rtnl_tc_data(TC_CAST(cls))))
+		return -NLE_NOMEM;
+
+	f->cfl_key_ipv6_dst = nl_data_alloc(addr, sizeof(*addr));
+
+	f->cfl_key_ipv6_dst_mask = nl_data_alloc(addr_mask, sizeof(*addr_mask));
+
+	f->cfl_mask |= FLOWER_ATTR_IPV6_DST;
+	return 0;
+}
 
 int rtnl_flower_set_tcp_src(struct rtnl_cls *cls, uint16_t port)
 {
@@ -241,38 +272,29 @@ int rtnl_flower_set_udp_dst(struct rtnl_cls *cls, uint16_t port)
 	return 0;
 }
 
-// TODO: find macro for the constant 6 (mac address size)
-static struct nla_policy flower_policy[TCA_FLOWER_MAX+1] = {
-	[TCA_FLOWER_CLASSID]	= { .type = NLA_U32 },
+static struct nla_policy flower_policy[TCA_FLOWER_MAX + 1] = {
+	[TCA_FLOWER_UNSPEC]		= { .type = NLA_UNSPEC },
+	[TCA_FLOWER_CLASSID]		= { .type = NLA_U32 },
 	[TCA_FLOWER_INDEV]		= { .type = NLA_STRING,
-								.maxlen = IFNAMSIZ },
-	[TCA_FLOWER_KEY_ETH_DST] = { .type = NLA_STRING,
-								 .maxlen = 6,
-								 .minlen = 6},
-	[TCA_FLOWER_KEY_ETH_DST_MASK] = { .type = NLA_STRING,
-								 .maxlen = 6,
-								 .minlen = 6},
-	[TCA_FLOWER_KEY_ETH_SRC] = { .type = NLA_STRING,
-								.maxlen = 6,
-								.minlen = 6},
-	[TCA_FLOWER_KEY_ETH_SRC_MASK] = { .type = NLA_STRING,
-								.maxlen = 6,
-								.minlen = 6},
-	[TCA_FLOWER_KEY_ETH_TYPE] = { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_IP_PROTO] = { .type = NLA_U8 },
-	[TCA_FLOWER_KEY_IPV4_SRC] = { .type = NLA_U32 },
-	[TCA_FLOWER_KEY_IPV4_SRC_MASK] = { .type = NLA_U32 },
-	[TCA_FLOWER_KEY_IPV4_DST] = { .type = NLA_U32 },
-	[TCA_FLOWER_KEY_IPV4_DST_MASK] = { .type = NLA_U32 },
-	// TODO: ipv6
-	// TCA_FLOWER_KEY_IPV6_SRC
-	// TCA_FLOWER_KEY_IPV6_SRC_MASK
-	// TCA_FLOWER_KEY_IPV6_DST
-	// TCA_FLOWER_KEY_IPV6_DST_MASK
-	[TCA_FLOWER_KEY_TCP_SRC] = { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_TCP_DST] = { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_UDP_SRC] = { .type = NLA_U16 },
-	[TCA_FLOWER_KEY_UDP_DST] = { .type = NLA_U16 }
+					    .maxlen = IFNAMSIZ },
+	[TCA_FLOWER_KEY_ETH_DST]	= { .minlen = ETH_ALEN },
+	[TCA_FLOWER_KEY_ETH_DST_MASK]	= { .minlen = ETH_ALEN },
+	[TCA_FLOWER_KEY_ETH_SRC]	= { .minlen = ETH_ALEN },
+	[TCA_FLOWER_KEY_ETH_SRC_MASK]	= { .minlen = ETH_ALEN },
+	[TCA_FLOWER_KEY_ETH_TYPE]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_IP_PROTO]	= { .type = NLA_U8 },
+	[TCA_FLOWER_KEY_IPV4_SRC]	= { .type = NLA_U32 },
+	[TCA_FLOWER_KEY_IPV4_SRC_MASK]	= { .type = NLA_U32 },
+	[TCA_FLOWER_KEY_IPV4_DST]	= { .type = NLA_U32 },
+	[TCA_FLOWER_KEY_IPV4_DST_MASK]	= { .type = NLA_U32 },
+	[TCA_FLOWER_KEY_IPV6_SRC]	= { .minlen = sizeof(struct in6_addr) },
+	[TCA_FLOWER_KEY_IPV6_SRC_MASK]	= { .minlen = sizeof(struct in6_addr) },
+	[TCA_FLOWER_KEY_IPV6_DST]	= { .minlen = sizeof(struct in6_addr) },
+	[TCA_FLOWER_KEY_IPV6_DST_MASK]	= { .minlen = sizeof(struct in6_addr) },
+	[TCA_FLOWER_KEY_TCP_SRC]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_TCP_DST]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_UDP_SRC]	= { .type = NLA_U16 },
+	[TCA_FLOWER_KEY_UDP_DST]	= { .type = NLA_U16 },
 };
 
 static int flower_msg_parser(struct rtnl_tc *tc, void *data)
@@ -353,14 +375,21 @@ static int flower_msg_parser(struct rtnl_tc *tc, void *data)
 		f->cfl_mask |= FLOWER_ATTR_IPV4_DST;
 	}
 
-	// TODO ipv6
-	// TCA_FLOWER_KEY_IPV6_SRC
-	// TCA_FLOWER_KEY_IPV6_SRC_MASK
-	// TCA_FLOWER_KEY_IPV6_DST
-	// TCA_FLOWER_KEY_IPV6_DST_MASK
-	//
-	// FLOWER_ATTR_IPV6_SRC
-	// FLOWER_ATTR_IPV6_DST
+	if (tb[TCA_FLOWER_KEY_IPV6_SRC]) {
+		f->cfl_key_ipv6_src = nl_data_alloc_attr(tb[TCA_FLOWER_KEY_IPV6_SRC]);
+		if (tb[TCA_FLOWER_KEY_IPV6_SRC_MASK]) {
+			f->cfl_key_ipv6_src_mask = nl_data_alloc_attr(tb[TCA_FLOWER_KEY_IPV6_SRC_MASK]);
+		}
+		f->cfl_mask |= FLOWER_ATTR_IPV6_SRC;
+	}
+
+	if (tb[TCA_FLOWER_KEY_IPV6_DST]) {
+		f->cfl_key_ipv6_dst = nl_data_alloc_attr(tb[TCA_FLOWER_KEY_IPV6_DST]);
+		if (tb[TCA_FLOWER_KEY_IPV6_DST_MASK]) {
+			f->cfl_key_ipv6_dst_mask = nl_data_alloc_attr(tb[TCA_FLOWER_KEY_IPV6_DST_MASK]);
+		}
+		f->cfl_mask |= FLOWER_ATTR_IPV6_DST;
+	}
 	
 	if (tb[TCA_FLOWER_KEY_TCP_SRC]) {
 		f->cfl_key_tcp_src = nla_get_u16(tb[TCA_FLOWER_KEY_TCP_SRC]);
@@ -462,49 +491,57 @@ static int flower_msg_fill(struct rtnl_tc *tc, void *data, struct nl_msg *msg)
 			return err;
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_SRC_MAC){
+	if (f->cfl_mask & FLOWER_ATTR_SRC_MAC) {
 		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC, f->cfl_key_eth_src);
 		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_SRC_MASK, f->cfl_key_eth_src_mask);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_DST_MAC){
+	if (f->cfl_mask & FLOWER_ATTR_DST_MAC) {
 		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_DST, f->cfl_key_eth_dst);
 		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_ETH_DST_MASK, f->cfl_key_eth_dst_mask);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_ETH_TYPE){
+	if (f->cfl_mask & FLOWER_ATTR_ETH_TYPE) {
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_ETH_TYPE, f->cfl_key_eth_type);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_IP_PROTO){
+	if (f->cfl_mask & FLOWER_ATTR_IP_PROTO) {
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_ETH_TYPE, f->cfl_key_eth_type);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_IPV4_SRC){
+	if (f->cfl_mask & FLOWER_ATTR_IPV4_SRC) {
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_IPV4_SRC, f->cfl_key_ipv4_src);
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_IPV4_SRC_MASK, f->cfl_key_ipv4_src_mask);
 	}
 	
-	if (f->cfl_mask & FLOWER_ATTR_IPV4_DST){
+	if (f->cfl_mask & FLOWER_ATTR_IPV4_DST) {
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_IPV4_DST, f->cfl_key_ipv4_dst);
 		NLA_PUT_U32(msg, TCA_FLOWER_KEY_IPV4_DST_MASK, f->cfl_key_ipv4_dst_mask);
 	}
 
-	// TODO: ipv6
+	if (f->cfl_mask & FLOWER_ATTR_IPV6_SRC) {
+		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_IPV6_SRC, f->cfl_key_ipv6_src);
+		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_IPV6_SRC_MASK, f->cfl_key_ipv6_src_mask);
+	}
 
-	if (f->cfl_mask & FLOWER_ATTR_TCP_SRC){
+	if (f->cfl_mask & FLOWER_ATTR_IPV6_DST) {
+		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_IPV6_DST, f->cfl_key_ipv6_dst);
+		NLA_PUT_DATA(msg, TCA_FLOWER_KEY_IPV6_DST_MASK, f->cfl_key_ipv6_dst_mask);
+	}
+
+	if (f->cfl_mask & FLOWER_ATTR_TCP_SRC) {
 		NLA_PUT_U16(msg, TCA_FLOWER_KEY_TCP_SRC, f->cfl_key_tcp_src);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_TCP_DST){
+	if (f->cfl_mask & FLOWER_ATTR_TCP_DST) {
 		NLA_PUT_U16(msg, TCA_FLOWER_KEY_TCP_DST, f->cfl_key_tcp_dst);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_UDP_SRC){
+	if (f->cfl_mask & FLOWER_ATTR_UDP_SRC) {
 		NLA_PUT_U16(msg, TCA_FLOWER_KEY_UDP_SRC, f->cfl_key_udp_src);
 	}
 
-	if (f->cfl_mask & FLOWER_ATTR_UDP_DST){
+	if (f->cfl_mask & FLOWER_ATTR_UDP_DST) {
 		NLA_PUT_U16(msg, TCA_FLOWER_KEY_UDP_DST, f->cfl_key_udp_dst);
 	}
 

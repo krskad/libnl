@@ -843,6 +843,8 @@ global:
 	rtnl_flower_set_ip_proto;
 	rtnl_flower_set_ipv4_src;
 	rtnl_flower_set_ipv4_dst;
+	rtnl_flower_set_ipv6_src;
+	rtnl_flower_set_ipv6_dst;
 	rtnl_flower_set_tcp_src;
 	rtnl_flower_set_tcp_dst;
 	rtnl_flower_set_udp_src;

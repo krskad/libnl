@@ -559,10 +559,10 @@ struct rtnl_flower
 	uint32_t cfl_key_ipv4_src_mask;
 	uint32_t cfl_key_ipv4_dst;
 	uint32_t cfl_key_ipv4_dst_mask;
-	// in6_addr cfl_key_ipv6_src;
-	// in6_addr cfl_key_ipv6_src_mask;
-	// in6_addr cfl_key_ipv6_dst;
-	// in6_addr cfl_key_ipv6_dst_mask;
+	struct nl_data * cfl_key_ipv6_src;
+	struct nl_data * cfl_key_ipv6_src_mask;
+	struct nl_data * cfl_key_ipv6_dst;
+	struct nl_data * cfl_key_ipv6_dst_mask;
 	uint16_t cfl_key_tcp_src;
 	uint16_t cfl_key_tcp_dst;
 	uint16_t cfl_key_udp_src;
